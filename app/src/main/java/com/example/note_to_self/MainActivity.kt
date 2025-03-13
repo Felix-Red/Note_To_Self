@@ -9,20 +9,38 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.Button
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
 class MainActivity : AppCompatActivity() {
-
+    // Temporary code
+    private var tempNote = Note()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val button = findViewById<View>(R.id.button) as Button
+
+        button.setOnClickListener{
+            val dailog = DailogShowNote()
+
+            dailog.sendNoteSelected(tempNote)
+            dailog.show(supportFragmentManager, "Show Note")
+        }
+
+
         val fab = findViewById<FloatingActionButton>(R.id.fab)
         fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null)
-                .setAnchorView(R.id.fab).show()
+            val dailog = DailogNewNote()
+            dailog.show(supportFragmentManager, "New Note")
         }
+    }
+
+    fun createNewNote(n: Note) {
+        tempNote = n
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
