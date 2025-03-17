@@ -11,24 +11,21 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
 class MainActivity : AppCompatActivity() {
-    // Temporary code
-    private var tempNote = Note()
+    private val noteList = ArrayList<Note>()
+    private var recyclerView: RecyclerView? = null
+    private var adapter: NoteAdapter? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        val button = findViewById<View>(R.id.button) as Button
-
-        button.setOnClickListener{
-            val dailog = DailogShowNote()
-
-            dailog.sendNoteSelected(tempNote)
-            dailog.show(supportFragmentManager, "Show Note")
-        }
 
 
         val fab = findViewById<FloatingActionButton>(R.id.fab)
@@ -36,11 +33,30 @@ class MainActivity : AppCompatActivity() {
             val dailog = DailogNewNote()
             dailog.show(supportFragmentManager, "New Note")
         }
+
+        recyclerView = findViewById<View>(R.id.recyclerView) as RecyclerView
+
+        adapter = NoteAdapter(this, noteList)
+        val layoutManager = LinearLayoutManager(applicationContext)
+        recyclerView!!.layoutManager = layoutManager
+        recyclerView!!.itemAnimator = DefaultItemAnimator()
+
+        // Add a neat dividing line between items in the list
+        recyclerView!!.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
+        recyclerView!!.adapter = adapter
+
     }
 
     fun createNewNote(n: Note) {
-        tempNote = n
+        //tempNote = n
+        noteList.add(n)
+        adapter!!.notifyDataSetChanged()
 
+    }
+    fun showNote(noteToShow: Int) {
+        val dialog = DailogShowNote()
+        dialog.sendNoteSelected(noteList[noteToShow])
+        dialog.show(supportFragmentManager, "")
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
