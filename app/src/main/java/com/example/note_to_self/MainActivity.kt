@@ -1,5 +1,7 @@
 package com.example.note_to_self
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
@@ -22,10 +24,13 @@ class MainActivity : AppCompatActivity() {
     private val noteList = ArrayList<Note>()
     private var recyclerView: RecyclerView? = null
     private var adapter: NoteAdapter? = null
+    private var showDividers: Boolean = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        setSupportActionBar(findViewById(R.id.toolbar))
 
 
         val fab = findViewById<FloatingActionButton>(R.id.fab)
@@ -42,7 +47,20 @@ class MainActivity : AppCompatActivity() {
         recyclerView!!.itemAnimator = DefaultItemAnimator()
 
         // Add a neat dividing line between items in the list
-        recyclerView!!.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
+        if(showDividers) {
+            recyclerView!!.addItemDecoration(
+                DividerItemDecoration(
+                    this,
+                    LinearLayoutManager.VERTICAL
+                )
+            )
+        }else{
+            // check there are some dividers
+            // or the app will crash
+            if (recyclerView!!.itemDecorationCount > 0)
+                recyclerView!!.removeItemDecorationAt(0)
+        }
+
         recyclerView!!.adapter = adapter
 
     }
@@ -70,9 +88,20 @@ class MainActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.action_settings -> {
+                val intent = Intent(this, SettingsActivity::class.java)
+
+                startActivity(intent)
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        val prefs = getSharedPreferences("Note to self", Context.MODE_PRIVATE)
+        showDividers = prefs.getBoolean("dividers", true)
+
+    }
 }
