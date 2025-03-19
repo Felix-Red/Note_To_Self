@@ -3,6 +3,7 @@ package com.example.note_to_self
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
@@ -21,7 +22,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
 class MainActivity : AppCompatActivity() {
-    private val noteList = ArrayList<Note>()
+    private var mSerializer: JSONSerializer? = null
+    private var noteList: ArrayList<Note>? = null
+    //private val noteList = ArrayList<Note>()
     private var recyclerView: RecyclerView? = null
     private var adapter: NoteAdapter? = null
     private var showDividers: Boolean = false
@@ -39,9 +42,19 @@ class MainActivity : AppCompatActivity() {
             dailog.show(supportFragmentManager, "New Note")
         }
 
+        mSerializer = JSONSerializer("NoteToSelf.json",
+            applicationContext)
+
+        try {
+            noteList = mSerializer!!.load()
+        } catch (e: Exception) {
+            noteList = ArrayList()
+            Log.e("Error loading notes: ", "", e)
+        }
+
         recyclerView = findViewById<View>(R.id.recyclerView) as RecyclerView
 
-        adapter = NoteAdapter(this, noteList)
+        adapter = noteList?.let { NoteAdapter(this, it) }
         val layoutManager = LinearLayoutManager(applicationContext)
         recyclerView!!.layoutManager = layoutManager
         recyclerView!!.itemAnimator = DefaultItemAnimator()
@@ -67,13 +80,13 @@ class MainActivity : AppCompatActivity() {
 
     fun createNewNote(n: Note) {
         //tempNote = n
-        noteList.add(n)
+        noteList!!.add(n)
         adapter!!.notifyDataSetChanged()
 
     }
     fun showNote(noteToShow: Int) {
         val dialog = DailogShowNote()
-        dialog.sendNoteSelected(noteList[noteToShow])
+        dialog.sendNoteSelected(noteList!![noteToShow])
         dialog.show(supportFragmentManager, "")
     }
 
@@ -103,5 +116,20 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("Note to self", Context.MODE_PRIVATE)
         showDividers = prefs.getBoolean("dividers", true)
 
+    }
+
+    private fun saveNotes() {
+        try {
+            mSerializer!!.save(this.noteList!!)
+
+        } catch (e: Exception) {
+            Log.e("Error Saving Notes", "", e)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        saveNotes()
     }
 }
